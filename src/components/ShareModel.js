@@ -3,7 +3,7 @@ import { IoCloseOutline } from "react-icons/io5";
 import { FaTelegram } from "react-icons/fa";
 import { FaLinkedin } from "react-icons/fa";
 import { FaWhatsapp } from "react-icons/fa";
-const ShareModal = ({ isOpen, onClose, copiedUrl }) => {
+const ShareModel = ({ isOpen, onClose, copiedUrl }) => {
     const modalStyle = isOpen ? 'block' : 'hidden';
   const shareOnWhatsApp = () => {
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(copiedUrl)}`);
@@ -72,4 +72,4 @@ const ShareModal = ({ isOpen, onClose, copiedUrl }) => {
   );
 };
 
-export default ShareModal;
+export default ShareModel;

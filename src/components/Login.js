@@ -1,25 +1,42 @@
 import React, { useState } from 'react';
-import { auth1 } from '../config/firebase';
+import { auth1, db1 } from '../config/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
-  const handleLogin = () => {
-    signInWithEmailAndPassword(auth1, email, password)
-            .then((userCredential) => {
-              const user = userCredential.user;
-              console.log(user)
-              const {uid} = auth1.currentUser;
-              console.log(uid)
-              localStorage.setItem("userId",user.uid)
-              alert("Login successful")
-            })
-            .catch((error) => {
-              console.log(error);
-            });
-  };
+  async function fetchDocumentID(email) {
+		try {
+			const usersRef = collection(db1, "users");
+			const q = query(usersRef, where("email", "==", email));
+			const querySnapshot = await getDocs(q);
+
+			querySnapshot.forEach((doc) => {
+				console.log("Document ID:", doc.id);
+				localStorage.setItem("userId", doc.id);
+				// You can access the document ID using doc.id
+			});
+		} catch (error) {
+			console.error("Error fetching document:", error);
+		}
+	}
+  const handleLogin = async() => {
+    try{
+      await signInWithEmailAndPassword(auth1,email,password);
+      await fetchDocumentID(email);
+      alert('Login successfully')
+      navigate('/resume-dashboard')
+    }
+    catch(err)
+    {
+      console.log('Failed to login the user',err)
+    }
+
+  }
 
   return (
     <div className="h-screen flex items-center justify-center bg-slate-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -72,6 +89,7 @@ const Login = () => {
               Login
             </button>
           </div>
+            <p className='cursor-pointer' onClick={()=>navigate('/signup')}>New to Jobseekuser? Sign Up now</p>
         </form>
       </div>
     </div>

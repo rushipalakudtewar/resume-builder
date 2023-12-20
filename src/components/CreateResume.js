@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import {doc,getDoc} from "firebase/firestore"
 import { db1 } from '../config/firebase';
-import { PDFExport } from "@progress/kendo-react-pdf";
-import ShareModal from './ShareModel';
-import { MdEmail } from "react-icons/md";
-import { FaPhoneAlt } from "react-icons/fa";
-import { FaLocationDot } from "react-icons/fa6";
+// import { PDFExport } from "@progress/kendo-react-pdf";
+import ShareModel from './ShareModel';
+import Template1 from './templates/Template1';
+import Template2 from './templates/Template2';
+import Template3 from './templates/Template3';
+import { useNavigate } from 'react-router-dom';
+
 const CreateResume = () => {
     const [dataStore,setDataStore] = useState('')
     const [profileDetails,setProfileDetails] = useState({})
@@ -14,23 +16,30 @@ const CreateResume = () => {
     const [education,setEducation] = useState([])
     const [certificates,setCertificates] = useState([])
     const [skills,setSkills] = useState([])
-    const pdfExportComponent = React.useRef(null);
+    const [languages,setLanguages] = useState([])
+    // const pdfExportComponent = React.useRef(null);
     const resumeUrl = 'http://localhost:3000/resume';
     const textAreaRef = React.useRef(null);
     const [isModalOpen, setModalOpen] = useState(false);
-
+    const [selectedTemplate, setSelectedTemplate] = useState('template1');
+    const navigate = useNavigate()
+    
+    const handleTemplateClick = (template) => {
+      setSelectedTemplate(template);
+    };
+  
     //show the model
     const copyToClipboard = () => {
-        textAreaRef.current.select();
-        document.execCommand('copy');
+        // textAreaRef.current.select();
+        // document.execCommand('copy');
         setModalOpen(true);
     };
 
-    //only copy url
-    const onlyCopyToClipboard = () => {
-        textAreaRef.current.select();
-        document.execCommand('copy');
-    }
+    // only copy url
+    // const onlyCopyToClipboard = () => {
+    //     textAreaRef.current.select();
+    //     document.execCommand('copy');
+    // }
     const closeModal = () => {
         setModalOpen(false);
       };
@@ -43,6 +52,7 @@ const CreateResume = () => {
  
              if (docSnap.exists()) {
                   const userData = docSnap.data();
+                  console.log("User is ",userData);
                   setDataStore(userData)
                   setProfileDetails(userData.personalDetails);
                   setPersonalSummary(userData.personalSummary.summary)
@@ -50,6 +60,8 @@ const CreateResume = () => {
                   setEducation(userData.education)
                   setSkills(userData.skills)
                   setCertificates(userData.licenceCertificate)
+                  setLanguages(userData.languages)
+                  
                 } else {
                     console.log("No such document!");
                }
@@ -66,17 +78,20 @@ useEffect(()=>{
 
 
 return (
-        <>
-        <button className='m-14 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white shadow-md py-2 px-4 sm:px-6 lg:px-8' onClick={() => {
+        <div className='mb-20'>
+        {/* <button className='m-14 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white shadow-md py-2 px-4 sm:px-6 lg:px-8' onClick={() => {
               if (pdfExportComponent.current) {
                 pdfExportComponent.current.save();   
               }
             }}>Download</button>
-            
-        
-        <button className='m-14 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white shadow-md py-2 px-4 sm:px-6 lg:px-8'  onClick={copyToClipboard}>Share the resume</button>
-        <ShareModal isOpen={isModalOpen} onClose={closeModal} copiedUrl={resumeUrl} />
-        <div>
+             */}
+        <div className='flex justify-between items-center mb-5 mx-10'>        
+        <button className='bg-gradient-to-r m-5 from-purple-500 via-pink-500 to-red-500 text-white shadow-md py-2 px-4 sm:px-6 lg:px-8' onClick={()=>navigate('/resume-dashboard')}>Back</button>
+        <button className='bg-gradient-to-r m-5 from-purple-500 via-pink-500 to-red-500 text-white shadow-md py-2 px-4 sm:px-6 lg:px-8' onClick={copyToClipboard}>Share the resume</button>
+        <ShareModel isOpen={isModalOpen} onClose={closeModal} copiedUrl={resumeUrl} />
+        </div>
+
+        {/* <div>
             <textarea
                 ref={textAreaRef}
                 readOnly
@@ -86,101 +101,24 @@ return (
             <p>Your resume URL: {resumeUrl}</p>
 
             <button onClick={onlyCopyToClipboard} className='bg-slate-400 hover:bg-slate-600 text-white px-4 p-1 m-2 rounded-md border-none '>Copy URL</button>
+        </div > */}
+
+        <div className='flex justify-between items-start flex-col md:flex-row mx-0 md:mx-20'>
+        <div className='mt-10 flex flex-row md:flex-col'>
+        <button onClick={() => handleTemplateClick('template1')} className='bg-gray-400 hover:bg-gray-600 text-white px-4 p-2 m-4 shadow-md'>Fresher</button>
+
+        <button onClick={() => handleTemplateClick('template2')} className='bg-gray-400 hover:bg-gray-600 text-white px-4 p-2 m-4 shadow-md'>Midlevel</button>
+
+        <button onClick={() => handleTemplateClick('template3')}  className='bg-gray-400 hover:bg-gray-600 text-white px-4 p-2 m-4 shadow-md'>Experienced</button>
+
         </div>
-        
-        <div className="m-4 p-4 border border-gray-800 shadow-lg rounded-md">
-        <PDFExport paperSize="A4" margin="0.5cm" ref={pdfExportComponent}>
-            <div className="flex justify-between items-center px-4 text-white bg-slate-900 h-40 rounded-sm" >
-                <div>
-                    <div className='font-semibold text-2xl'>{profileDetails.firstName} {profileDetails.lastName}</div>
-                        <div className='flex items-center mt-1'><MdEmail className='text-md mr-2'/><p className='text-sm'>{dataStore.email}</p></div>
-                        <div className='flex items-center mt-1'><FaPhoneAlt className='text-md mr-2'/><p className='text-sm'>{profileDetails.phoneNumber}</p></div>
-                        <div className='flex items-center mt-1'><FaLocationDot className='text-md mr-2'/><p className='text-sm'>{profileDetails.homeLocation}</p></div>
-                    </div>
-                <div className="" >
-                    <img className="rounded-full mx-auto object-cover w-28 h-28" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHDRlp-KGr_M94k_oor4Odjn2UzbAS7n1YoA&usqp=CAU" alt='profile-pic'/>
-                   
-                </div>
-            </div>
-        
-            <hr className='h-0.5 my-2 bg-gray-800'/>
-            <div className='text-md'>
-            <div className='bg-slate-900 text-white text-center rounded-sm p-1'>PROFILE</div>
-            <div className='p-1 text-sm'>{personalSummary}</div> 
-            </div>
-
-            <hr className='h-0.5 my-2 bg-gray-800'/>
-
-            <div className='bg-slate-900 text-white text-center rounded-sm p-1'>EMPLOYEMENT HISTORY</div>
-                <div className='p-1 my-2'>
-                { experiences.length>0 && experiences.map((item)=>{
-                    return (
-                        <div className='p-1'>
-                            <div className='flex justify-between items-center'>
-                                <p className='font-bold text-md'>{item.companyName}</p>
-                                <div>
-                                    <p className='text-sm'><span>{item.started.month.substring(0,3)}-{item.started.year}</span>{ item.ended.stillInRole ? <span>Current</span> : <span> / {item.ended.month.substring(0,3)}-{item.ended.year}</span>}</p>
-                                </div>   
-                            </div>
-                            <p className='italic'>{item.jobTitle}</p>
-                            <p className='text-sm'>{item.description}</p>
-                        </div>
-                    )
-                })}
-            </div>  
-
-            <hr className='h-0.5 my-2 bg-gray-800'/>
-
-            <div className='bg-slate-900 text-white text-center rounded-sm p-1'>EDUCATION</div>
-            <div className='p-1 my-2'>
-                { education.length>0 && education.map((item)=>{
-                    return (
-                        <div className='p-1' key={item.eduId}>
-                            <div className='flex justify-between items-center'>
-                                <p className='font-bold text-md'>{item.institution}</p>
-                                <p className='text-sm'>{item.completionYear}</p>
-                            </div>
-                            <p className='italic'>{item.courseName}</p>
-                           
-                        </div>
-                    )
-                })}
-            </div>  
-
-            <hr className='h-0.5 my-2 bg-gray-800'/>
-
-            <div className='bg-slate-900 text-white text-center rounded-sm p-1'>SKILLS</div>
-            <div className='p-1 my-2 flex flex-wrap'>
-                { skills.length>0 && skills.map((item,index)=>{
-                    return (
-                        <div className='p-1 border-none mx-1 m-1 px-2 bg-slate-400 shadow-md rounded-md text-white' key={index}>                            
-                            <span className='text-md'>{item}</span>       
-                        </div>
-                    )
-                })}
-            </div>  
-            <hr className='h-0.5 my-2 bg-gray-800'/>
-        
-            <div className='bg-slate-900 text-white text-center rounded-sm p-1'>CERTIFICATES</div>
-            <div className='p-1 my-2'>
-                { certificates.length>0 && certificates.map((item)=>{
-                    return (
-                        <div className='p-1' key={item.licenceId}>
-                            <div className='flex justify-between items-center'>
-                                <p className='font-bold text-md'>{item.licenceCertificateName} <span className='italic font-normal'>({item.issuingOrganisation})</span></p>
-                                <div>
-                                    <p className='text-sm'><span>{item.issueDate.month.substring(0,3)}-{item.issueDate.year}</span>  {item.expiryDate.noExpiry ? null : <span> / {item.expiryDate.month.substring(0,3)}-{item.expiryDate.year} </span>}</p>
-                                </div>   
-                            </div>
-                            <p className='text-sm'>{item.description}</p>
-                           
-                        </div>
-                    )
-                })}
-            </div> 
-        </PDFExport>    
+        <div className="bg-gray-200 p-4 m-2 w-[793px] border-gray-800 shadow-lg rounded-md">
+            {selectedTemplate === 'template1' && <Template1 dataStore={dataStore} personalSummary={personalSummary} certificates={certificates} skills={skills} profileDetails={profileDetails} experiences={experiences} education={education} languages={languages}/>}
+            {selectedTemplate === 'template2' && <Template2 dataStore={dataStore} personalSummary={personalSummary} certificates={certificates} skills={skills} profileDetails={profileDetails} experiences={experiences} education={education} languages={languages}/>}
+            {selectedTemplate === 'template3' && <Template3 dataStore={dataStore} personalSummary={personalSummary} certificates={certificates} skills={skills} profileDetails={profileDetails} experiences={experiences} education={education} languages={languages}/>}
         </div>
-    </>
+        </div>
+    </div>
   )
 }
 
